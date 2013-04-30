@@ -6,6 +6,8 @@ function onDocumentReady() {
     	zoom: 3
     });
 
+    var markerLocal; // marker del usuario local
+
 	var tiles = L.tileLayer('http://a.tiles.mapbox.com/v3/calosth.map-v5t9aoe3/{z}/{x}/{y}.png');
 
 	map.addLayer(tiles);
@@ -28,10 +30,10 @@ function onDocumentReady() {
 
 	function onLocationFound(position) {
 		var mycoords = position.latlng;
-		var marker = L.marker([mycoords.lat, mycoords.lng]);
+		markerLocal = L.marker([mycoords.lat, mycoords.lng]);
 
-		map.addLayer(marker);
-		marker.bindPopup('<b>Estás aquí</b>');
+		map.addLayer(markerLocal);
+		markerLocal.bindPopup('<b>Estás aquí</b>');
 
 		socket.emit('coords:me', {latlng: mycoords});
 	}
@@ -56,6 +58,7 @@ function onDocumentReady() {
 
 	$('#cerrar').on('click', cerrarFormulario); // Ocultar formaulario.
 	$('#guardar').on('click', guardarInformacion); // Guardar datos del lugar.
+	$('#radio-elegir-ubicacion').on('click', handlerClickMarker); //Elegir ubicacion en el mapa
 
 	function cerrarFormulario(e){
 		e.preventDefault();
@@ -68,6 +71,21 @@ function onDocumentReady() {
 		geosearch.geosearch($('#ubicacion').val());
 		$form.fadeOut();
 	}
+	
+	function handlerClickMarker (e) {
+		$form.fadeOut();
+		map.on('click', function(e){
+			map.removeLayer(markerLocal);
+			var coordenadas = e.latlng;
+			markerLocal = L.marker([coordenadas.lat, coordenadas.lng]);
+			map.addLayer(markerLocal);
+			$('#ubicacion').val(coordenadas.lat+''+coordenadas.lng);
+			$form.fadeIn();
+		});			
+	}	
+
+	//Efecto para que se pueda mover el formulario.
+	$form.draggable();
 }
 
 $(document).on('ready', onDocumentReady);
