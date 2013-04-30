@@ -2,13 +2,21 @@ function onDocumentReady() {
 	var socket = io.connect(window.location.href);
 
     var map = L.map('mimapa', {
-	    center: [0, -23],
-	    zoom: 3
-	});
+    	center: [0, -28],
+    	zoom: 3
+    });
 
 	var tiles = L.tileLayer('http://a.tiles.mapbox.com/v3/calosth.map-v5t9aoe3/{z}/{x}/{y}.png');
-	
+
 	map.addLayer(tiles);
+
+	// Plugin GeoSearch.
+	// Nos permite ubicarnos en el mapa dando una direccion.
+	// Asi como lo hace Google Maps, de echo usa como proveedor Google Maps.
+	var geosearch = new L.Control.GeoSearch({
+            provider: new L.GeoSearch.Provider.Google(),
+            zoomLevel: 18
+    }).addTo(map);
 
 	map.locate({
 		enableHighAccuracy: true
@@ -23,7 +31,7 @@ function onDocumentReady() {
 		var marker = L.marker([mycoords.lat, mycoords.lng]);
 
 		map.addLayer(marker);
-		marker.bindPopup('Estás aquí');
+		marker.bindPopup('<b>Estás aquí</b>');
 
 		socket.emit('coords:me', {latlng: mycoords});
 	}
@@ -34,6 +42,31 @@ function onDocumentReady() {
 
 		map.addLayer(marker);
 		marker.bindPopup('Estás aquí');
+	}
+
+	// Efectos para mostrar/ocultar formulario.
+	var $form = $('#formulario');
+	var $place = $('#place');
+	//Efecto para que se pueda mover el formulario.
+	$form.draggable();
+
+	// Mostrar formualrio al iniciar.
+	$form.fadeIn();
+
+
+	$('#cerrar').on('click', cerrarFormulario); // Ocultar formaulario.
+	$('#guardar').on('click', guardarInformacion); // Guardar datos del lugar.
+
+	function cerrarFormulario(e){
+		e.preventDefault();
+		$form.fadeOut();
+		$place.fadeOut();
+	}
+
+	function guardarInformacion(e){
+		e.preventDefault();
+		geosearch.geosearch($('#ubicacion').val());
+		$form.fadeOut();
 	}
 }
 
